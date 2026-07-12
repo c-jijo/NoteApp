@@ -1,25 +1,26 @@
 import customtkinter
-import tkinter
+import tkinter as tk
+from tkinter import filedialog
+from tkinter.filedialog import asksaveasfile
 
-class Textbox(customtkinter.CTkTextbox):
-    def __init__(self, master):
-        super().__init__(master)
-        self.textbox = customtkinter.CTkTextbox(master=self, height=500, width=300, corner_radius=20, undo=True)
-        self.textbox.grid(row=0, column=0, sticky="nsew")
-        
-
-    
+def save_file(textdata): #Writes the textbox data to a text file
+        print(textdata)
+        file = filedialog.asksaveasfilename(defaultextension=".txt")
+        with open(file, "w") as f:
+            f.write(textdata)        
         
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.geometry("800x500")
         self.grid_rowconfigure(0, weight=1) 
         self.grid_columnconfigure(0, weight=1)
 
-        self.textbox = Textbox(master=self)
-        self.textbox.grid(padx=30, pady=30, sticky="nsew")
-
+        self.textbox = customtkinter.CTkTextbox(master=self, corner_radius=20, undo=True)
+        self.textbox.grid(padx=30, pady=30, row=0, column=0, sticky="nsew")
+        button = customtkinter.CTkButton(self, text="Save As", command=lambda: save_file(self.textbox.get("0.0", "end"))) #Save As button
+        button.grid(padx=0, pady=0)
 
 app = App()
 app.mainloop()
