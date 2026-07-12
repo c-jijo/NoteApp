@@ -9,8 +9,9 @@ def save_file(textdata): #Writes the textbox data to a text file
         with open(file, "w") as f:
             f.write(textdata)
 
-def open_file(textbox):
+def open_file(textbox): #Inserts data from opened files into the textbox
      file = filedialog.askopenfilename()        
+     textbox.delete("0.0", "end")
      with open(file) as f:
           textbox.insert("0.0", f.read())
 
@@ -27,10 +28,6 @@ class App(customtkinter.CTk):
         savebutton.grid(padx=0, pady=0)
         openbutton = customtkinter.CTkButton(self, text="Open", command=lambda:open_file(self.textbox)) #Open button
         openbutton.grid(padx=0, pady=0)
-
-    
-         
-        
 
 app = App()
 app.mainloop()
