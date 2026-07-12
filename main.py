@@ -5,6 +5,19 @@ from tkinter.filedialog import asksaveasfile
 
 customtkinter.set_appearance_mode("dark")
 
+tagdict = {}
+currentTag = ""
+
+def new_tag():
+     tagname = customtkinter.CTkInputDialog(text="Enter name of new tag", title="New Tag")
+     tagdict[tagname.get_input()] = []
+     currentTag = tagname.get_input()
+
+def delete_tag(currentTag):
+     tagdict.pop(currentTag)
+     currentTag = ""
+     
+     
 def save_file(textdata): #Writes the textbox data to a text file
         print(textdata)
         file = filedialog.asksaveasfilename(defaultextension=".txt")
@@ -23,7 +36,7 @@ class App(customtkinter.CTk):
         self.geometry("800x500")
 
         noteframe = customtkinter.CTkFrame(master=self, border_width=5)
-        tabframe = customtkinter.CTkFrame(master=self, border_width=5)
+        tagframe = customtkinter.CTkFrame(master=self, border_width=5)
         dateframe = customtkinter.CTkFrame(master=self, border_width=5)
 
         self.grid_rowconfigure(0, weight=1)
@@ -36,7 +49,7 @@ class App(customtkinter.CTk):
         noteframe.grid_rowconfigure(0, weight=1)
         noteframe.grid_columnconfigure(0, weight=1)
 
-        tabframe.grid(column=0, row=0, sticky="nsew")
+        tagframe.grid(column=0, row=0, sticky="nsew")
         dateframe.grid(column=0, row=1, sticky="nsew" )
 
         self.textbox = customtkinter.CTkTextbox(master=noteframe, corner_radius=20, undo=True, border_width=5, font=(None, 24))
@@ -45,6 +58,11 @@ class App(customtkinter.CTk):
         savebutton.grid(padx=0, pady=0)
         openbutton = customtkinter.CTkButton(noteframe, text="Open", command=lambda:open_file(self.textbox), fg_color="grey") #Open button
         openbutton.grid(padx=0, pady=0)
+
+        addtag = customtkinter.CTkButton(tagframe, text="New Tag", command=new_tag, fg_color="grey")
+        addtag.grid()
+        deltag = customtkinter.CTkButton(tagframe, text="Delete Tag", command=lambda:delete_tag(currentTag), fg_color="grey")
+        deltag.grid()
 
 app = App()
 app.mainloop()
