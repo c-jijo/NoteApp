@@ -7,8 +7,12 @@ def save_file(textdata): #Writes the textbox data to a text file
         print(textdata)
         file = filedialog.asksaveasfilename(defaultextension=".txt")
         with open(file, "w") as f:
-            f.write(textdata)        
-        
+            f.write(textdata)
+
+def open_file(textbox):
+     file = filedialog.askopenfilename()        
+     with open(file) as f:
+          textbox.insert("0.0", f.read())
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -19,8 +23,14 @@ class App(customtkinter.CTk):
 
         self.textbox = customtkinter.CTkTextbox(master=self, corner_radius=20, undo=True)
         self.textbox.grid(padx=30, pady=30, row=0, column=0, sticky="nsew")
-        button = customtkinter.CTkButton(self, text="Save As", command=lambda: save_file(self.textbox.get("0.0", "end"))) #Save As button
-        button.grid(padx=0, pady=0)
+        savebutton = customtkinter.CTkButton(self, text="Save As", command=lambda: save_file(self.textbox.get("0.0", "end"))) #Save As button
+        savebutton.grid(padx=0, pady=0)
+        openbutton = customtkinter.CTkButton(self, text="Open", command=lambda:open_file(self.textbox)) #Open button
+        openbutton.grid(padx=0, pady=0)
+
+    
+         
+        
 
 app = App()
 app.mainloop()
