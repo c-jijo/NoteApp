@@ -8,14 +8,23 @@ customtkinter.set_appearance_mode("dark")
 tagdict = {}
 currentTag = ""
 
-def new_tag():
+def new_tag(tagmenu):
+     global currentTag
      tagname = customtkinter.CTkInputDialog(text="Enter name of new tag", title="New Tag")
-     tagdict[tagname.get_input()] = []
-     currentTag = tagname.get_input()
+     newtagname = tagname.get_input()
+     tagdict[newtagname] = []
+     currentTag = newtagname
+     tagmenu.configure(values=list(tagdict.keys()))
+     
+    
+def delete_tag(rtag, tagmenu):
+     global currentTag
+     tagdict.pop(rtag)
+     tagmenu.configure(values=list(tagdict.keys()))
+     
 
-def delete_tag(currentTag):
-     tagdict.pop(currentTag)
-     currentTag = ""
+def selecttag(selectedtag):
+     pass
      
      
 def save_file(textdata): #Writes the textbox data to a text file
@@ -34,6 +43,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("800x500")
+        taglist = list(tagdict.keys())
 
         noteframe = customtkinter.CTkFrame(master=self, border_width=5)
         tagframe = customtkinter.CTkFrame(master=self, border_width=5)
@@ -59,10 +69,16 @@ class App(customtkinter.CTk):
         openbutton = customtkinter.CTkButton(noteframe, text="Open", command=lambda:open_file(self.textbox), fg_color="grey") #Open button
         openbutton.grid(padx=0, pady=0)
 
-        addtag = customtkinter.CTkButton(tagframe, text="New Tag", command=new_tag, fg_color="grey")
+        tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=selecttag)
+        tagmenu.grid()
+
+        addtag = customtkinter.CTkButton(tagframe, text="New Tag", command=lambda:new_tag(tagmenu), fg_color="grey")
         addtag.grid()
-        deltag = customtkinter.CTkButton(tagframe, text="Delete Tag", command=lambda:delete_tag(currentTag), fg_color="grey")
+        deltag = customtkinter.CTkButton(tagframe, text="Delete Tag", command=lambda:delete_tag(currentTag, tagmenu), fg_color="grey")
         deltag.grid()
+
+        
+        
 
 app = App()
 app.mainloop()
