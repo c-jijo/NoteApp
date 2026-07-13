@@ -2,10 +2,12 @@ import customtkinter
 import tkinter as tk
 from tkinter import filedialog
 from tkinter.filedialog import asksaveasfile
+from pathlib import Path
+import os
 
 customtkinter.set_appearance_mode("dark")
 
-tagdict = {}
+tagdict = {'': []}
 currentTag = ""
 
 def new_tag(tagmenu):
@@ -22,16 +24,27 @@ def delete_tag(rtag, tagmenu):
      tagdict.pop(rtag)
      tagmenu.configure(values=list(tagdict.keys()))
 
-def add_notes():
+def add_notes(tagnotemenu, textbox):
     global currentTag
     file = filedialog.askopenfilename()
-    tagdict[currentTag] = file
+    tagdict.setdefault(currentTag, []).append(file)
     print(tagdict)
+    fileList = [Path(path).name for path in tagdict[currentTag]]
+    num = 0
+    for x in tagdict[currentTag]:
+         if tagnotemenu.get() in x:
+              num = x.index(tagdict[currentTag])
+    tagnotemenu.configure(values=fileList)
+
+    
 
 def delete_notes():
     global currentTag
     pass
      
+#def display_tagged_notes():
+    # 
+    
      
 
 def selecttag(selectedtag):
@@ -45,15 +58,20 @@ def save_file(textdata): #Writes the textbox data to a text file
         with open(file, "w") as f:
             f.write(textdata)
 
-def open_file(textbox): #Inserts data from opened files into the textbox
-     file = filedialog.askopenfilename()        
-     textbox.delete("0.0", "end")
-     with open(file) as f:
+def open_file(textbox, readyfile): #Inserts data from opened files into the textbox
+    if readyfile == None:
+        file = filedialog.askopenfilename()
+    else:
+        file = readyfile     
+   
+    textbox.delete("0.0", "end")
+    with open(file) as f:
           textbox.insert("0.0", f.read())
 
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        global currentTag
         self.geometry("800x500")
         taglist = list(tagdict.keys())
 
@@ -78,25 +96,23 @@ class App(customtkinter.CTk):
         self.textbox.grid(padx=30, pady=30, sticky="nsew")
         savebutton = customtkinter.CTkButton(noteframe, text="Save As", command=lambda: save_file(self.textbox.get("0.0", "end")), fg_color="grey") #Save As button
         savebutton.grid(padx=0, pady=0)
-        openbutton = customtkinter.CTkButton(noteframe, text="Open", command=lambda:open_file(self.textbox), fg_color="grey") #Open button
+        openbutton = customtkinter.CTkButton(noteframe, text="Open", command=lambda:open_file(self.textbox, None), fg_color="grey") #Open button
         openbutton.grid(padx=0, pady=0)
 
         tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=selecttag)
         tagmenu.grid()
+        tagnotemenu = customtkinter.CTkOptionMenu(tagframe)
+        tagnotemenu.grid(row=12, column=4)
+
 
         addtag = customtkinter.CTkButton(tagframe, text="New Tag", command=lambda:new_tag(tagmenu), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        addtag.grid(row=0, column=2)
+        addtag.grid(row=0, column=2, sticky="nsew")
         deltag = customtkinter.CTkButton(tagframe, text="Delete Tag", command=lambda:delete_tag(currentTag, tagmenu), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        deltag.grid(row=0, column=4)
-        addfiles = customtkinter.CTkButton(tagframe, text="Add notes to tag", command=lambda:add_notes(), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        addfiles.grid(row=0, column=6)
+        deltag.grid(row=0, column=4, sticky="nsew")
+        addfiles = customtkinter.CTkButton(tagframe, text="Add notes to tag", command=lambda:add_notes(tagnotemenu, self.textbox), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
+        addfiles.grid(row=0, column=6, sticky="nsew")
         delfiles = customtkinter.CTkButton(tagframe, text="Delete notes from tag", command=lambda:delete_notes(), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        delfiles.grid(row=0, column=8)
-
-
-
-        
-        
+        delfiles.grid(row=0, column=8, sticky="nsew")
 
 app = App()
 app.mainloop()
