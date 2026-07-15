@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter.filedialog import asksaveasfile
 from pathlib import Path
-import os
+import difflib
 
 customtkinter.set_appearance_mode("dark")
 
@@ -28,28 +28,25 @@ def add_notes(tagnotemenu, textbox):
     global currentTag
     file = filedialog.askopenfilename()
     tagdict.setdefault(currentTag, []).append(file)
-    print(tagdict)
-    fileList = [Path(path).name for path in tagdict[currentTag]]
-    num = 0
-    for x in tagdict[currentTag]:
-         if tagnotemenu.get() in x:
-              num = x.index(tagdict[currentTag])
-    tagnotemenu.configure(values=fileList)
-
-    
+    fileList = [Path(path).stem for path in tagdict[currentTag]]
+    tagnotemenu.configure(values=fileList)  
 
 def delete_notes():
     global currentTag
-    pass
-     
-#def display_tagged_notes():
-    # 
-    
+    pass   
      
 
 def selecttag(selectedtag):
      global currentTag
      currentTag = selectedtag
+
+def select_tagged_note(textbox, tagnotemenu):
+    taggedfile = tagnotemenu.get()
+    print(taggedfile)
+    print(tagdict[currentTag])
+    file = next((f for f in tagdict[currentTag] if Path(f).stem == taggedfile), None)
+    print(file)
+    open_file(textbox, file)
      
      
 def save_file(textdata): #Writes the textbox data to a text file
@@ -62,7 +59,7 @@ def open_file(textbox, readyfile): #Inserts data from opened files into the text
     if readyfile == None:
         file = filedialog.askopenfilename()
     else:
-        file = readyfile     
+        file = readyfile
    
     textbox.delete("0.0", "end")
     with open(file) as f:
@@ -103,6 +100,7 @@ class App(customtkinter.CTk):
         tagmenu.grid()
         tagnotemenu = customtkinter.CTkOptionMenu(tagframe)
         tagnotemenu.grid(row=12, column=4)
+        tagnotemenu.configure(command=lambda e:select_tagged_note(self.textbox, tagnotemenu))
 
 
         addtag = customtkinter.CTkButton(tagframe, text="New Tag", command=lambda:new_tag(tagmenu), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
