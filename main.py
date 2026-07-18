@@ -1,9 +1,9 @@
 import customtkinter
 import tkinter as tk
+from tkinter import *
 from tkinter import filedialog
 from tkinter.filedialog import asksaveasfile
 from pathlib import Path
-import difflib
 
 customtkinter.set_appearance_mode("dark")
 
@@ -71,7 +71,6 @@ class App(customtkinter.CTk):
         global currentTag
         self.geometry("800x500")
         taglist = list(tagdict.keys())
-
         noteframe = customtkinter.CTkFrame(master=self, border_width=5)
         tagframe = customtkinter.CTkFrame(master=self, border_width=5)
         dateframe = customtkinter.CTkFrame(master=self, border_width=5)
@@ -89,12 +88,21 @@ class App(customtkinter.CTk):
         tagframe.grid(column=0, row=0, sticky="nsew")
         dateframe.grid(column=0, row=1, sticky="nsew" )
 
+        self.menubar = tk.Menu(self)
+        self.configure(menu=self.menubar)
+
+        self.file = Menu(self.menubar, tearoff = 0)
+        self.menubar.add_cascade(label = "File", menu = self.file)
+        self.file.add_command(label = "Open Note", command = lambda:open_file(self.textbox, None))
+        self.file.add_command(label = "Save Note As", command=lambda: save_file(self.textbox.get("0.0", "end")))
+
+        self.tag = Menu(self.menubar, tearoff = 0)
+        self.menubar.add_cascade(label = "Tag", menu = self.tag)
+        self.tag.add_command(label = "New Tag", command=lambda:new_tag(tagmenu))
+
+
         self.textbox = customtkinter.CTkTextbox(master=noteframe, corner_radius=20, undo=True, border_width=5, font=(None, 24))
         self.textbox.grid(padx=30, pady=30, sticky="nsew")
-        savebutton = customtkinter.CTkButton(noteframe, text="Save As", command=lambda: save_file(self.textbox.get("0.0", "end")), fg_color="grey") #Save As button
-        savebutton.grid(padx=0, pady=0)
-        openbutton = customtkinter.CTkButton(noteframe, text="Open", command=lambda:open_file(self.textbox, None), fg_color="grey") #Open button
-        openbutton.grid(padx=0, pady=0)
 
         tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=selecttag)
         tagmenu.grid()
@@ -111,6 +119,8 @@ class App(customtkinter.CTk):
         addfiles.grid(row=0, column=6, sticky="nsew")
         delfiles = customtkinter.CTkButton(tagframe, text="Delete notes from tag", command=lambda:delete_notes(), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
         delfiles.grid(row=0, column=8, sticky="nsew")
+
+        self.protocol("WM_DESTROY_WINDOW", self.destroy)
 
 app = App()
 app.mainloop()
