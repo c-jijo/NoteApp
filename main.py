@@ -9,7 +9,8 @@ customtkinter.set_appearance_mode("dark")
 
 tagdict = {'': []}
 currentTag = ""
-selectedFile = ""
+selectedFileIndex = None
+
 
 def new_tag(tagmenu): #Creates a new tag
      global currentTag
@@ -26,11 +27,10 @@ def delete_tag(rtag, tagmenu): #Deletes tags
      tagmenu.configure(values=list(tagdict.keys()))
     
 def show_tagContextMenu(event, tagContextMenu, notelist): #Creates a context menu when right clicking in the tag frame
-    global selectedFile
+    global selectedFileIndex
     selectedFileIndex = notelist.nearest(event.y)
     notelist.selection_set(selectedFileIndex)
     tagContextMenu.tk_popup(event.x_root, event.y_root)
-    selectedFile = notelist.get(selectedFileIndex)
     notelist.selection_clear(0, tk.END)
      
 
@@ -38,11 +38,23 @@ def add_notes(notelist): #Add notes to a tag
     global currentTag
     file = filedialog.askopenfilename()
     tagdict.setdefault(currentTag, []).append(file)
-    notelist.insert(tk.END, Path(file).stem) 
+    fileList = [Path(path).stem for path in tagdict[currentTag]]
+    notelist.delete(0, tk.END)
+    for x in fileList:
+        notelist.insert(tk.END, x) 
 
-def delete_notes(): #Delete notes from a tag
+def delete_notes(notelist): #Delete notes from a tag
     global currentTag
-    pass   
+    global selectedFileIndex
+    selectedFile = notelist.get(selectedFileIndex)
+    notelist.delete(selectedFileIndex)
+    fileToDelete = next((f for f in tagdict[currentTag] if Path(f).stem == selectedFile), None)
+    tagdict[currentTag].remove(fileToDelete)
+
+    fileList = [Path(path).stem for path in tagdict[currentTag]]
+    notelist.delete(0, tk.END)
+    for x in fileList:
+        notelist.insert(tk.END, x) 
      
 
 def selecttag(selectedtag):  #Sets selected tag to currentTag
@@ -116,6 +128,7 @@ class App(customtkinter.CTk):
         #Context menu that appears when you right click in the tagframe
         self.tagContextMenu = tk.Menu(self, tearoff=0)
         self.tagContextMenu.add_command(label = "Add note to tag", command=lambda:add_notes(self.notelist))
+        self.tagContextMenu.add_command(label = "Delete note from tag", command=lambda:delete_notes(self.notelist))
         self.notelist.bind("<Button-3>", lambda event: show_tagContextMenu(event, self.tagContextMenu, self.notelist))
 
         #Textbox in which notes are taken
@@ -125,9 +138,6 @@ class App(customtkinter.CTk):
         #Menu that contains a list of all tags and allows you to select one
         tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=selecttag)
         tagmenu.grid()
-
-        delfiles = customtkinter.CTkButton(tagframe, text="Delete notes from tag", command=lambda:delete_notes(), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        delfiles.grid(row=0, column=8, sticky="nsew")
 
         self.protocol("WM_DESTROY_WINDOW", self.destroy)
 
