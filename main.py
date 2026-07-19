@@ -57,9 +57,14 @@ def delete_notes(notelist): #Delete notes from a tag
         notelist.insert(tk.END, x) 
      
 
-def selecttag(selectedtag):  #Sets selected tag to currentTag
-     global currentTag
-     currentTag = selectedtag
+def selecttag(selectedtag, notelist):  #Sets selected tag to currentTag
+    global currentTag
+    currentTag = selectedtag
+    fileList = [Path(path).stem for path in tagdict[currentTag]]
+    notelist.delete(0, tk.END)
+    for x in fileList:
+        notelist.insert(tk.END, x) 
+     
      
 def select_tagged_note(textbox, notelist): #Opens selected note in a tag
     taggedFileIndex = notelist.curselection()
@@ -136,7 +141,7 @@ class App(customtkinter.CTk):
         self.textbox.grid(padx=30, pady=30, sticky="nsew")
 
         #Menu that contains a list of all tags and allows you to select one
-        tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=selecttag)
+        tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=lambda selectedtag: selecttag(selectedtag, self.notelist))
         tagmenu.grid()
 
         self.protocol("WM_DESTROY_WINDOW", self.destroy)
