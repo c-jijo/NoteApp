@@ -23,8 +23,12 @@ def delete_tag(rtag, tagmenu):
      global currentTag
      tagdict.pop(rtag)
      tagmenu.configure(values=list(tagdict.keys()))
+    
+def show_tagContextMenu(event, tagContextMenu):
+    tagContextMenu.tk_popup(event.x_root, event.y_root)
+     
 
-def add_notes(tagnotemenu, textbox):
+def add_notes(tagnotemenu):
     global currentTag
     file = filedialog.askopenfilename()
     tagdict.setdefault(currentTag, []).append(file)
@@ -99,6 +103,12 @@ class App(customtkinter.CTk):
         self.tag = Menu(self.menubar, tearoff = 0)
         self.menubar.add_cascade(label = "Tag", menu = self.tag)
         self.tag.add_command(label = "New Tag", command=lambda:new_tag(tagmenu))
+        self.tag.add_command(label = "Delete Tag", command=lambda:delete_tag(currentTag, tagmenu))
+
+        self.tagContextMenu = tk.Menu(self, tearoff=0)
+        self.tagContextMenu.add_command(label = "Add note to tag", command=lambda:add_notes(tagnotemenu))
+
+        tagframe.bind("<Button-3>", lambda event: show_tagContextMenu(event, self.tagContextMenu))
 
 
         self.textbox = customtkinter.CTkTextbox(master=noteframe, corner_radius=20, undo=True, border_width=5, font=(None, 24))
@@ -110,13 +120,6 @@ class App(customtkinter.CTk):
         tagnotemenu.grid(row=12, column=4)
         tagnotemenu.configure(command=lambda e:select_tagged_note(self.textbox, tagnotemenu))
 
-
-        addtag = customtkinter.CTkButton(tagframe, text="New Tag", command=lambda:new_tag(tagmenu), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        addtag.grid(row=0, column=2, sticky="nsew")
-        deltag = customtkinter.CTkButton(tagframe, text="Delete Tag", command=lambda:delete_tag(currentTag, tagmenu), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        deltag.grid(row=0, column=4, sticky="nsew")
-        addfiles = customtkinter.CTkButton(tagframe, text="Add notes to tag", command=lambda:add_notes(tagnotemenu, self.textbox), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
-        addfiles.grid(row=0, column=6, sticky="nsew")
         delfiles = customtkinter.CTkButton(tagframe, text="Delete notes from tag", command=lambda:delete_notes(), fg_color="grey", width=20, font=(None, 10), border_spacing=1)
         delfiles.grid(row=0, column=8, sticky="nsew")
 
