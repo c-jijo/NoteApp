@@ -38,10 +38,7 @@ def add_notes(notelist): #Add notes to a tag
     global currentTag
     file = filedialog.askopenfilename()
     tagdict.setdefault(currentTag, []).append(file)
-    fileList = [Path(path).stem for path in tagdict[currentTag]]
-    notelist.delete(0, tk.END)
-    for x in fileList:
-        notelist.insert(tk.END, x) 
+    populate_notelist(notelist)
 
 def delete_notes(notelist): #Delete notes from a tag
     global currentTag
@@ -51,15 +48,16 @@ def delete_notes(notelist): #Delete notes from a tag
     fileToDelete = next((f for f in tagdict[currentTag] if Path(f).stem == selectedFile), None)
     tagdict[currentTag].remove(fileToDelete)
 
-    fileList = [Path(path).stem for path in tagdict[currentTag]]
-    notelist.delete(0, tk.END)
-    for x in fileList:
-        notelist.insert(tk.END, x) 
-     
+    populate_notelist(notelist)
 
+     
 def selecttag(selectedtag, notelist):  #Sets selected tag to currentTag
     global currentTag
     currentTag = selectedtag
+    populate_notelist(notelist)
+
+
+def populate_notelist(notelist):
     fileList = [Path(path).stem for path in tagdict[currentTag]]
     notelist.delete(0, tk.END)
     for x in fileList:
