@@ -90,8 +90,9 @@ def open_file(textbox, readyfile): #Inserts data from opened files into the text
           textbox.insert("0.0", f.read())
 
 def date_select(calendar, title):
-    date = calendar.get_date()
-    title.configure(text = date)
+    date = calendar.selection_get()
+    formattedDate = date.strftime("%B %d, %Y")
+    title.configure(text = formattedDate)
 
     
 
