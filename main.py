@@ -68,7 +68,7 @@ def selecttag(selectedtag, notelist):  #Sets selected tag to currentTag
     currentTag = selectedtag
     populate_notelist(notelist)
 
-def add_notes_date(dateNoteList):
+def add_notes_date(dateNoteList): #Add notes to a date
     global currentDate
     file = filedialog.askopenfilename()
     if currentDate in datedict:
@@ -78,6 +78,16 @@ def add_notes_date(dateNoteList):
         datedict.setdefault(currentDate, []).append(file)
     print(datedict)
     populate_dateNotelist(dateNoteList)
+
+def delete_notes_date(dateNoteList): #Delete notes from a date
+    global currentDate
+    global selectedFileIndex
+    selectedFile = dateNoteList.get(selectedFileIndex)
+    dateNoteList.delete(selectedFileIndex)
+    fileToDelete = next((f for f in datedict[currentDate] if Path(f).stem == selectedFile), None)
+    datedict[currentDate].remove(fileToDelete)
+
+    populate_notelist(dateNoteList)
 
 
 def populate_notelist(notelist):
@@ -208,7 +218,7 @@ class App(customtkinter.CTk):
         #Context menu that appears when you right click in the day
         self.dateContextMenu = tk.Menu(self, tearoff=0)
         self.dateContextMenu.add_command(label = "Add note", command=lambda:add_notes_date(self.dateNoteList))
-        self.dateContextMenu.add_command(label = "Delete note", command=lambda:delete_notes(self.notelist))
+        self.dateContextMenu.add_command(label = "Delete note", command=lambda:delete_notes_date(self.dateNoteList))
         self.dateNoteList.bind("<Button-3>", lambda event: show_dateContextMenu(event, self.dateContextMenu, self.dateNoteList))
 
         #Calendar
