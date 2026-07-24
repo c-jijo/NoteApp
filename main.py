@@ -6,11 +6,14 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter.filedialog import asksaveasfile
 from pathlib import Path
+from datetime import datetime
 
 customtkinter.set_appearance_mode("dark")
 
 tagdict = {'': []}
+datedict = {'': []}
 currentTag = ""
+currentDate = datetime.now()
 selectedFileIndex = None
 
 
@@ -34,6 +37,13 @@ def show_tagContextMenu(event, tagContextMenu, notelist): #Creates a context men
     notelist.selection_set(selectedFileIndex)
     tagContextMenu.tk_popup(event.x_root, event.y_root)
     notelist.selection_clear(0, tk.END)
+
+def show_dateContextMenu(event, dateContextMenu, dateNoteList): #Creates a context menu when right clicking in the day frame
+    global selectedFileIndex
+    selectedFileIndex = dateNoteList.nearest(event.y)
+    dateNoteList.selection_set(selectedFileIndex)
+    dateContextMenu.tk_popup(event.x_root, event.y_root)
+    dateNoteList.selection_clear(0, tk.END)
      
 
 def add_notes(notelist): #Add notes to a tag
@@ -58,13 +68,30 @@ def selecttag(selectedtag, notelist):  #Sets selected tag to currentTag
     currentTag = selectedtag
     populate_notelist(notelist)
 
+def add_notes_date(dateNoteList):
+    global currentDate
+    file = filedialog.askopenfilename()
+    if currentDate in datedict:
+        datedict.setdefault(currentDate, []).append(file)
+    else:
+        datedict[currentDate] = []
+        datedict.setdefault(currentDate, []).append(file)
+    print(datedict)
+    populate_dateNotelist(dateNoteList)
+
 
 def populate_notelist(notelist):
     fileList = [Path(path).stem for path in tagdict[currentTag]]
     notelist.delete(0, tk.END)
     for x in fileList:
         notelist.insert(tk.END, x) 
-     
+
+def populate_dateNotelist(dateNoteList):
+    fileList = [Path(path).stem for path in datedict[currentDate]]
+    dateNoteList.delete(0, tk.END)
+    for x in fileList:
+        dateNoteList.insert(tk.END, x) 
+    
      
 def select_tagged_note(textbox, notelist): #Opens selected note in a tag
     taggedFileIndex = notelist.curselection()
@@ -89,10 +116,16 @@ def open_file(textbox, readyfile): #Inserts data from opened files into the text
     with open(file) as f:
           textbox.insert("0.0", f.read())
 
-def date_select(calendar, title):
+def date_select(calendar, title, dateNoteList):
+    global currentDate
     date = calendar.selection_get()
+    currentDate = date
     formattedDate = date.strftime("%B %d, %Y")
     title.configure(text = formattedDate)
+    if currentDate in datedict:
+        populate_dateNotelist(dateNoteList)
+    else:
+        dateNoteList.delete(0, tk.END)
 
     
 
@@ -100,6 +133,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         global currentTag
+        global currentDate
         self.geometry("800x500")
         taglist = list(tagdict.keys())
         noteframe = customtkinter.CTkFrame(master=self, border_width=5)
@@ -162,21 +196,27 @@ class App(customtkinter.CTk):
         tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=lambda selectedtag: selecttag(selectedtag, self.notelist))
         tagmenu.grid()
 
-        self.dateTitle = customtkinter.CTkLabel(dayframe)
+        self.dateTitle = customtkinter.CTkLabel(dayframe, text=currentDate.strftime("%B %d, %Y"))
         self.dateTitle.grid()
-
-        #Calendar
-        self.calendar = Calendar(monthframe, selectmode="day")
-        self.calendar.grid(sticky="nsew")
-        for dayRow in self.calendar._calendar:
-            for date in dayRow:
-                date.bind("<Double-Button-1>", lambda e: [date_select(self.calendar, self.dateTitle), dayframe.tkraise()])
 
         self.backButton = customtkinter.CTkButton(dayframe, text="Calendar", command=lambda: monthframe.tkraise())
         self.backButton.grid(sticky="nw")
 
         self.dateNoteList = tk.Listbox(dayframe, selectmode=tk.SINGLE)
         self.dateNoteList.grid(sticky="nsew")
+
+        #Context menu that appears when you right click in the day
+        self.dateContextMenu = tk.Menu(self, tearoff=0)
+        self.dateContextMenu.add_command(label = "Add note", command=lambda:add_notes_date(self.dateNoteList))
+        self.dateContextMenu.add_command(label = "Delete note", command=lambda:delete_notes(self.notelist))
+        self.dateNoteList.bind("<Button-3>", lambda event: show_dateContextMenu(event, self.dateContextMenu, self.dateNoteList))
+
+        #Calendar
+        self.calendar = Calendar(monthframe, selectmode="day")
+        self.calendar.grid(sticky="nsew")
+        for dayRow in self.calendar._calendar:
+            for date in dayRow:
+                date.bind("<Double-Button-1>", lambda e: [date_select(self.calendar, self.dateTitle, self.dateNoteList), dayframe.tkraise()])
 
         self.protocol("WM_DESTROY_WINDOW", self.destroy)
 
