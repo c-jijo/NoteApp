@@ -89,8 +89,11 @@ def open_file(textbox, readyfile): #Inserts data from opened files into the text
     with open(file) as f:
           textbox.insert("0.0", f.read())
 
-def date_select():
-    pass
+def date_select(calendar, title):
+    date = calendar.get_date()
+    title.configure(text = date)
+
+    
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -158,15 +161,21 @@ class App(customtkinter.CTk):
         tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=lambda selectedtag: selecttag(selectedtag, self.notelist))
         tagmenu.grid()
 
+        self.dateTitle = customtkinter.CTkLabel(dayframe)
+        self.dateTitle.grid()
+
         #Calendar
         self.calendar = Calendar(monthframe, selectmode="day")
         self.calendar.grid(sticky="nsew")
         for dayRow in self.calendar._calendar:
             for date in dayRow:
-                date.bind("<Double-Button-1>", lambda e: [date_select(), dayframe.tkraise()])
+                date.bind("<Double-Button-1>", lambda e: [date_select(self.calendar, self.dateTitle), dayframe.tkraise()])
 
         self.backButton = customtkinter.CTkButton(dayframe, text="Calendar", command=lambda: monthframe.tkraise())
-        self.backButton.grid(column = 0, row= 0, sticky="nw")
+        self.backButton.grid(sticky="nw")
+
+        self.dateNoteList = tk.Listbox(dayframe, selectmode=tk.SINGLE)
+        self.dateNoteList.grid(sticky="nsew")
 
         self.protocol("WM_DESTROY_WINDOW", self.destroy)
 
