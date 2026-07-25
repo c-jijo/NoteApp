@@ -17,6 +17,7 @@ currentDate = datetime.now()
 selectedFileIndex = None
 currentBoardX = None
 currentBoardY = None
+boardNotes = []
 
 
 def new_tag(tagmenu): #Creates a new tag
@@ -153,7 +154,9 @@ def date_select(calendar, title, dateNoteList):
         dateNoteList.delete(0, tk.END)
 
 def add_board_note(canvas):
-    BoardNote(currentBoardX, currentBoardY, canvas)
+    global boardNotes
+    note = BoardNote(currentBoardX, currentBoardY, canvas)
+    boardNotes.append(note)
 
     
 class BoardNote():
@@ -161,9 +164,20 @@ class BoardNote():
         self.canvas = canvas
         self.boardNoteFrame = customtkinter.CTkFrame(master=canvas, border_width=5)
         self.noteText = customtkinter.CTkTextbox(master=self.boardNoteFrame)
-        self.noteText.grid()
+        self.noteText.grid(padx=20, pady=20)
         self.id = canvas.create_window(x, y, window=self.boardNoteFrame, anchor="nw")
 
+        self.boardNoteFrame.bind("<Button-1>", self.startmoving)
+        self.boardNoteFrame.bind("<B1-Motion>", self.stopmoving)
+
+    def startmoving(self, event):
+        self.startposx = event.x
+        self.startposy = event.y
+
+    def stopmoving(self, event):
+        endposx = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx() - self.startposx
+        endposy = self.canvas.winfo_pointery() - self.canvas.winfo_rooty() - self.startposy
+        self.canvas.coords(self.id, endposx, endposy )
 
 
 class App(customtkinter.CTk):
