@@ -32,8 +32,9 @@ def new_tag(tagmenu): #Creates a new tag
     
 def delete_tag(rtag, tagmenu): #Deletes tags
      global currentTag
-     tagdict.pop(rtag)
+     del tagdict[rtag]
      tagmenu.configure(values=list(tagdict.keys()))
+     tagmenu.set("")
     
 def show_tagContextMenu(event, tagContextMenu, notelist): #Creates a context menu when right clicking in the tag frame
     global selectedFileIndex
@@ -215,7 +216,7 @@ class App(customtkinter.CTk):
         global currentTag
         global currentDate
         self.geometry("800x500")
-        tabs = customtkinter.CTkTabview(master=self)
+        tabs = customtkinter.CTkTabview(master=self, bg_color="black", fg_color="#1e1e1e", segmented_button_selected_color="olive drab")
         tabs.add("Notes")
         tabs.add("Board")
 
@@ -224,8 +225,8 @@ class App(customtkinter.CTk):
         noteframe = customtkinter.CTkFrame(master=tabs.tab("Notes"), border_width=5)
         tagframe = customtkinter.CTkFrame(master=tabs.tab("Notes"), border_width=5)
         dateframe = customtkinter.CTkFrame(master=tabs.tab("Notes"), border_width=5)
-        monthframe = customtkinter.CTkFrame(master=dateframe, border_width=5)
-        dayframe = customtkinter.CTkFrame(master=dateframe, border_width=5)
+        monthframe = customtkinter.CTkFrame(master=dateframe, border_width=5, bg_color="black")
+        dayframe = customtkinter.CTkFrame(master=dateframe, border_width=5, bg_color="black")
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -243,6 +244,8 @@ class App(customtkinter.CTk):
         noteframe.grid_columnconfigure(0, weight=1)
 
         tagframe.grid(column=0, row=0, sticky="nsew") #Frame that contains the tags and notes associated with them
+        tagframe.grid_rowconfigure(0, weight=1)
+        tagframe.grid_columnconfigure(0, weight=1)
 
         dateframe.grid(column=0, row=1, sticky="nsew" ) #Frame that contains the calendar
         dateframe.grid_rowconfigure(0, weight=1)
@@ -254,7 +257,7 @@ class App(customtkinter.CTk):
             frame.grid_columnconfigure(0, weight=1)
 
 
-        self.notelist = tk.Listbox(tagframe, selectmode=tk.SINGLE)
+        self.notelist = tk.Listbox(tagframe, selectmode=tk.SINGLE, bg="old lace", fg="mint cream")
         self.notelist.grid(sticky="nsew")
         self.notelist.bind("<Double-Button-1>", lambda e:select_tagged_note(self.textbox, self.notelist))
 
@@ -283,16 +286,16 @@ class App(customtkinter.CTk):
         self.textbox.grid(padx=30, pady=30, sticky="nsew")
 
         #Menu that contains a list of all tags and allows you to select one
-        tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=lambda selectedtag: selecttag(selectedtag, self.notelist))
+        tagmenu = customtkinter.CTkOptionMenu(tagframe, values=taglist, command=lambda selectedtag: selecttag(selectedtag, self.notelist), button_color="olive drab", fg_color="olive drab")
         tagmenu.grid()
 
         self.dateTitle = customtkinter.CTkLabel(dayframe, text=currentDate.strftime("%B %d, %Y"))
         self.dateTitle.grid()
 
-        self.backButton = customtkinter.CTkButton(dayframe, text="Calendar", command=lambda: monthframe.tkraise())
+        self.backButton = customtkinter.CTkButton(dayframe, text="Calendar", command=lambda: monthframe.tkraise(), fg_color="olive drab")
         self.backButton.grid(sticky="nw")
 
-        self.dateNoteList = tk.Listbox(dayframe, selectmode=tk.SINGLE)
+        self.dateNoteList = tk.Listbox(dayframe, selectmode=tk.SINGLE, bg="old lace")
         self.dateNoteList.grid(sticky="nsew")
 
         #Context menu that appears when you right click in the day
@@ -311,7 +314,7 @@ class App(customtkinter.CTk):
                 date.bind("<Double-Button-1>", lambda e: [date_select(self.calendar, self.dateTitle, self.dateNoteList), dayframe.tkraise()])
 
         #Board Tab
-        self.canvas = tk.Canvas(master=tabs.tab("Board"))
+        self.canvas = tk.Canvas(master=tabs.tab("Board"), bg="old lace")
 
         tabs.tab("Board").grid_rowconfigure(0, weight=1)
         tabs.tab("Board").grid_columnconfigure(0, weight=1)
