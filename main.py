@@ -156,21 +156,34 @@ def date_select(calendar, title, dateNoteList):
 
 def add_board_note(canvas):
     global boardNotes
-    note = BoardNote(currentBoardX, currentBoardY, canvas)
+    note = BoardNote(currentBoardX, currentBoardY, "", canvas)
     boardNotes.append(note)
 
+def open_board(canvas):
+    global boardNotes
+    file = filedialog.askopenfile()
+    board_data = json.load(file)
+    canvas.delete("all")
+    boardNotes = board_data
+    for object in boardNotes:
+        note = BoardNote(object["x"], object["y"], object["text"], canvas)
+
+    
+
+
 def save_board_as():
+    global boardNotes
     board = [BoardNote.saveBoard() for BoardNote in boardNotes]
     boardname = customtkinter.CTkInputDialog(text="Enter name of new board", title="New Board")
     newboardname = boardname.get_input()
-    with open(f"board_name_{newboardname}.json", "w") as file:
+    with open(f"{newboardname}.json", "w") as file:
         json.dump(board, file, indent=4)
     
 
 
     
 class BoardNote():
-    def __init__(self, x, y , canvas):
+    def __init__(self, x, y , text, canvas):
         self.canvas = canvas
         self.boardNoteFrame = customtkinter.CTkFrame(master=canvas, border_width=5)
         self.noteText = customtkinter.CTkTextbox(master=self.boardNoteFrame)
@@ -179,6 +192,8 @@ class BoardNote():
 
         self.boardNoteFrame.bind("<Button-1>", self.startmoving)
         self.boardNoteFrame.bind("<B1-Motion>", self.stopmoving)
+
+        self.noteText.insert("1.0", text)
 
     def startmoving(self, event):
         self.startposx = event.x
@@ -308,6 +323,7 @@ class App(customtkinter.CTk):
 
         self.board = Menu(self.menubar, tearoff = 0)
         self.menubar.add_cascade(label = "Board", menu = self.board)
+        self.board.add_command(label = "Open Board", command = lambda: open_board(self.canvas))
         self.board.add_command(label = "Save Board As", command = save_board_as)
 
 
