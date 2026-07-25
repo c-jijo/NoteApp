@@ -257,7 +257,7 @@ class App(customtkinter.CTk):
             frame.grid_columnconfigure(0, weight=1)
 
 
-        self.notelist = tk.Listbox(tagframe, selectmode=tk.SINGLE, bg="old lace", fg="mint cream")
+        self.notelist = tk.Listbox(tagframe, selectmode=tk.SINGLE, bg="old lace")
         self.notelist.grid(sticky="nsew")
         self.notelist.bind("<Double-Button-1>", lambda e:select_tagged_note(self.textbox, self.notelist))
 
