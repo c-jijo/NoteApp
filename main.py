@@ -15,6 +15,8 @@ datedict = {'': []}
 currentTag = ""
 currentDate = datetime.now()
 selectedFileIndex = None
+currentBoardX = None
+currentBoardY = None
 
 
 def new_tag(tagmenu): #Creates a new tag
@@ -44,6 +46,13 @@ def show_dateContextMenu(event, dateContextMenu, dateNoteList): #Creates a conte
     dateNoteList.selection_set(selectedFileIndex)
     dateContextMenu.tk_popup(event.x_root, event.y_root)
     dateNoteList.selection_clear(0, tk.END)
+
+def show_boardContextMenu(event, boardContextMenu):
+    global currentBoardX
+    global currentBoardY
+    currentBoardX = event.x_root
+    currentBoardY = event.y_root
+    boardContextMenu.tk_popup(currentBoardX, currentBoardY)
      
 
 def add_notes(notelist): #Add notes to a tag
@@ -108,6 +117,12 @@ def select_tagged_note(textbox, notelist): #Opens selected note in a tag
     taggedFile = notelist.get(taggedFileIndex)
     file = next((f for f in tagdict[currentTag] if Path(f).stem == taggedFile), None)
     open_file(textbox, file)
+
+def select_date_note(textbox, dateNoteList): #Opens selected note in a date
+    taggedFileIndex = dateNoteList.curselection()
+    taggedFile = dateNoteList.get(taggedFileIndex)
+    file = next((f for f in datedict[currentDate] if Path(f).stem == taggedFile), None)
+    open_file(textbox, file)
      
      
 def save_file(textdata): #Writes the textbox data to a text file
@@ -137,7 +152,19 @@ def date_select(calendar, title, dateNoteList):
     else:
         dateNoteList.delete(0, tk.END)
 
+def add_board_note(canvas):
+    BoardNote(currentBoardX, currentBoardY, canvas)
+
     
+class BoardNote():
+    def __init__(self, x, y , canvas):
+        self.canvas = canvas
+        self.boardNoteFrame = customtkinter.CTkFrame(master=canvas, border_width=5)
+        self.noteText = customtkinter.CTkTextbox(master=self.boardNoteFrame)
+        self.noteText.grid()
+        self.id = canvas.create_window(x, y, window=self.boardNoteFrame, anchor="nw")
+
+
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -145,17 +172,27 @@ class App(customtkinter.CTk):
         global currentTag
         global currentDate
         self.geometry("800x500")
+        tabs = customtkinter.CTkTabview(master=self)
+        tabs.add("Notes")
+        tabs.add("Board")
+
+        #Notes Tab
         taglist = list(tagdict.keys())
-        noteframe = customtkinter.CTkFrame(master=self, border_width=5)
-        tagframe = customtkinter.CTkFrame(master=self, border_width=5)
-        dateframe = customtkinter.CTkFrame(master=self, border_width=5)
+        noteframe = customtkinter.CTkFrame(master=tabs.tab("Notes"), border_width=5)
+        tagframe = customtkinter.CTkFrame(master=tabs.tab("Notes"), border_width=5)
+        dateframe = customtkinter.CTkFrame(master=tabs.tab("Notes"), border_width=5)
         monthframe = customtkinter.CTkFrame(master=dateframe, border_width=5)
         dayframe = customtkinter.CTkFrame(master=dateframe, border_width=5)
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+
+        tabs.grid(row = 0, column = 0, sticky = "nsew")
+
+        tabs.tab("Notes").grid_rowconfigure(0, weight=1)
+        tabs.tab("Notes").grid_columnconfigure(0, weight=1)
+        tabs.tab("Notes").grid_rowconfigure(1, weight=1)
+        tabs.tab("Notes").grid_columnconfigure(1, weight=1)
 
         #Frame that contains the textbox
         noteframe.grid(column=1, row=0, sticky="nsew", rowspan=2)
@@ -193,7 +230,7 @@ class App(customtkinter.CTk):
         self.tag.add_command(label = "Delete Tag", command=lambda:delete_tag(currentTag, tagmenu))
 
         #Context menu that appears when you right click in the tagframe
-        self.tagContextMenu = tk.Menu(self, tearoff=0)
+        self.tagContextMenu = tk.Menu(self.notelist, tearoff=0)
         self.tagContextMenu.add_command(label = "Add note to tag", command=lambda:add_notes(self.notelist))
         self.tagContextMenu.add_command(label = "Delete note from tag", command=lambda:delete_notes(self.notelist))
         self.notelist.bind("<Button-3>", lambda event: show_tagContextMenu(event, self.tagContextMenu, self.notelist))
@@ -216,10 +253,12 @@ class App(customtkinter.CTk):
         self.dateNoteList.grid(sticky="nsew")
 
         #Context menu that appears when you right click in the day
-        self.dateContextMenu = tk.Menu(self, tearoff=0)
+        self.dateContextMenu = tk.Menu(self.dateNoteList, tearoff=0)
         self.dateContextMenu.add_command(label = "Add note", command=lambda:add_notes_date(self.dateNoteList))
         self.dateContextMenu.add_command(label = "Delete note", command=lambda:delete_notes_date(self.dateNoteList))
+
         self.dateNoteList.bind("<Button-3>", lambda event: show_dateContextMenu(event, self.dateContextMenu, self.dateNoteList))
+        self.dateNoteList.bind("<Double-Button-1>", lambda e:select_date_note(self.textbox, self.dateNoteList))
 
         #Calendar
         self.calendar = Calendar(monthframe, selectmode="day")
@@ -227,6 +266,18 @@ class App(customtkinter.CTk):
         for dayRow in self.calendar._calendar:
             for date in dayRow:
                 date.bind("<Double-Button-1>", lambda e: [date_select(self.calendar, self.dateTitle, self.dateNoteList), dayframe.tkraise()])
+
+        #Board Tab
+        self.canvas = tk.Canvas(master=tabs.tab("Board"))
+
+        tabs.tab("Board").grid_rowconfigure(0, weight=1)
+        tabs.tab("Board").grid_columnconfigure(0, weight=1)
+        self.canvas.grid(row = 0, column = 0, sticky="nsew")
+
+        self.boardContextMenu = tk.Menu(self.canvas, tearoff=0)
+        self.boardContextMenu.add_command(label = "Add note", command=lambda:add_board_note(self.canvas))
+        self.canvas.bind("<Button-3>", lambda event: show_boardContextMenu(event, self.boardContextMenu))
+
 
         self.protocol("WM_DESTROY_WINDOW", self.destroy)
 
