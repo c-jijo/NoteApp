@@ -7,6 +7,7 @@ from tkinter import filedialog
 from tkinter.filedialog import asksaveasfile
 from pathlib import Path
 from datetime import datetime
+import json
 
 customtkinter.set_appearance_mode("dark")
 
@@ -158,6 +159,15 @@ def add_board_note(canvas):
     note = BoardNote(currentBoardX, currentBoardY, canvas)
     boardNotes.append(note)
 
+def save_board_as():
+    board = [BoardNote.saveBoard() for BoardNote in boardNotes]
+    boardname = customtkinter.CTkInputDialog(text="Enter name of new board", title="New Board")
+    newboardname = boardname.get_input()
+    with open(f"board_name_{newboardname}.json", "w") as file:
+        json.dump(board, file, indent=4)
+    
+
+
     
 class BoardNote():
     def __init__(self, x, y , canvas):
@@ -177,7 +187,11 @@ class BoardNote():
     def stopmoving(self, event):
         endposx = self.canvas.winfo_pointerx() - self.canvas.winfo_rootx() - self.startposx
         endposy = self.canvas.winfo_pointery() - self.canvas.winfo_rooty() - self.startposy
-        self.canvas.coords(self.id, endposx, endposy )
+        self.canvas.coords(self.id, endposx, endposy)
+
+    def saveBoard(self):
+        xcoord, ycoord = self.canvas.coords(self.id)
+        return {"text" : self.noteText.get("1.0", "end-1c"), "x" : xcoord, "y" : ycoord }
 
 
 class App(customtkinter.CTk):
@@ -291,6 +305,11 @@ class App(customtkinter.CTk):
         self.boardContextMenu = tk.Menu(self.canvas, tearoff=0)
         self.boardContextMenu.add_command(label = "Add note", command=lambda:add_board_note(self.canvas))
         self.canvas.bind("<Button-3>", lambda event: show_boardContextMenu(event, self.boardContextMenu))
+
+        self.board = Menu(self.menubar, tearoff = 0)
+        self.menubar.add_cascade(label = "Board", menu = self.board)
+        self.board.add_command(label = "Save Board As", command = save_board_as)
+
 
 
         self.protocol("WM_DESTROY_WINDOW", self.destroy)
